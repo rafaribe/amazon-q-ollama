@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  amazon-q-ollama:
+    build: .
+    ports:
+      - "11434:11434"
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    volumes:
+      # Mount AWS credentials
+      - ~/.aws:/home/dev/.aws:ro
+      # Mount Amazon Q data directory
+      - amazon-q-ollama-data:/home/dev/.local/share/amazon-q
+      - amazon-q-ollama-cache:/home/dev/.cache/amazon-q
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  amazon-q-ollama-data:
+  amazon-q-ollama-cache:

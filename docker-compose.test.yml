@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  amazon-q-ollama:
+    build: .
+    ports:
+      - "11434:11434"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test-key
+      - AWS_SECRET_ACCESS_KEY=test-secret
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - test-network
+
+  test-runner:
+    image: curlimages/curl:latest
+    depends_on:
+      amazon-q-ollama:
+        condition: service_healthy
+    volumes:
+      - ./test-scripts:/scripts:ro
+    networks:
+      - test-network
+    command: >
+      sh -c "
+        echo 'Starting API tests...' &&
+        
+        # Basic health check
+        echo 'Testing health endpoint...' &&
+        curl -f http://amazon-q-ollama:11434/health &&
+        
+        # Test ping
+        echo 'Testing ping endpoint...' &&
+        curl -f http://amazon-q-ollama:11434/ping &&
+        
+        # Test version
+        echo 'Testing version endpoint...' &&
+        curl -f http://amazon-q-ollama:11434/api/version &&
+        
+        # Test tags
+        echo 'Testing tags endpoint...' &&
+        curl -f http://amazon-q-ollama:11434/api/tags &&
+        
+        # Test show
+        echo 'Testing show endpoint...' &&
+        curl -X POST http://amazon-q-ollama:11434/api/show \
+          -H 'Content-Type: application/json' \
+          -d '{\"name\": \"amazon-q\"}' &&
+        
+        # Test generate (expect 500 without Q CLI)
+        echo 'Testing generate endpoint...' &&
+        curl -X POST http://amazon-q-ollama:11434/api/generate \
+          -H 'Content-Type: application/json' \
+          -d '{\"model\": \"amazon-q\", \"prompt\": \"Hello\"}' &&
+        
+        # Test chat (expect 500 without Q CLI)
+        echo 'Testing chat endpoint...' &&
+        curl -X POST http://amazon-q-ollama:11434/api/chat \
+          -H 'Content-Type: application/json' \
+          -d '{\"model\": \"amazon-q\", \"messages\": [{\"role\": \"user\", \"content\": \"Hello\"}]}' &&
+        
+        # Test not implemented endpoints
+        echo 'Testing create endpoint (should return 501)...' &&
+        curl -X POST http://amazon-q-ollama:11434/api/create \
+          -H 'Content-Type: application/json' \
+          -d '{\"name\": \"test\"}' &&
+        
+        echo 'All tests completed!'
+      "
+
+networks:
+  test-network:
+    driver: bridge

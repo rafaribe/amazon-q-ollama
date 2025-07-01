@@ -43,7 +43,7 @@ func setupRouter() *gin.Engine {
 		api.HEAD("/blobs/:digest", handleBlobsHead)
 		api.POST("/blobs/:digest", handleBlobsPost)
 		api.GET("/version", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"version": "amazon-q-api-1.0.0"})
+			c.JSON(http.StatusOK, gin.H{"version": "amazon-q-ollama-1.0.0"})
 		})
 	}
 
@@ -58,11 +58,11 @@ func setupRouter() *gin.Engine {
 		c.Status(http.StatusOK)
 	})
 	r.GET("/metrics", func(c *gin.Context) {
-		c.String(http.StatusOK, "# Amazon Q API Metrics\namazon_q_api_up 1\n")
+		c.String(http.StatusOK, "# Amazon Q OLLAMA Metrics\namazon_q_ollama_up 1\n")
 	})
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Amazon Q API - OLLAMA Compatible",
+			"message": "Amazon Q OLLAMA - OLLAMA Compatible API",
 			"version": "1.0.0",
 		})
 	})

@@ -214,7 +214,7 @@ func (suite *IntegrationTestSuite) TestResponseFormats() {
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), 200, w.Code)
-	assert.Contains(suite.T(), w.Body.String(), "amazon_q_api_up 1")
+	assert.Contains(suite.T(), w.Body.String(), "amazon_q_ollama_up 1")
 }
 
 func (suite *IntegrationTestSuite) TestPerformance() {
